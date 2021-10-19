@@ -1,5 +1,7 @@
 package comp.comp152;
 
+import java.util.ArrayList;
+
 /**
  * Class Order
  */
@@ -11,6 +13,7 @@ public class Order {
 
     private ShippingAddress destination;
     private Customer orderedBy;
+    private ArrayList<merchandiseItem> cartForOrder;
 
 
     /**
@@ -21,6 +24,7 @@ public class Order {
     {
         destination = dest;
         orderedBy = cust;
+        cartForOrder = new ArrayList<merchandiseItem>();
     }
 
     //
