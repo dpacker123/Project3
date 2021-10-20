@@ -4,7 +4,7 @@ import java.util.ArrayList;
 /**
  * Class Customer
  */
-public abstract class Customer {
+public class Customer {
 
     //
     // Fields
@@ -17,7 +17,7 @@ public abstract class Customer {
     //
     // Constructors
     //
-    public abstract double PayForOrder(ArrayList<ItemForSale> itemsInOrder);
+    //public abstract double PayForOrder(ArrayList<ItemForSale> itemsInOrder);
 
     public Customer (String Name, int ID) {
         this.Name = Name;

@@ -8,11 +8,11 @@ public class BusinessCustomer extends Customer{
     private double purchaseOrderBalance;
 
 
-    @Override
-    public double PayForOrder(ArrayList<ItemForSale> itemsInOrder) {
-        System.out.println("" + getName() + purchaseOrderBalance);
+    //@Override
+  //  public double PayForOrder(ArrayList<ItemForSale> itemsInOrder) {
+       // System.out.println("" + getName() + purchaseOrderBalance);
 
-    }
+ //   }
 
     public BusinessCustomer(String Name, int ID) {
         super(Name, ID);
