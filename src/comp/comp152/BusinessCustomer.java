@@ -18,5 +18,17 @@ public class BusinessCustomer extends Customer{
         super(Name, ID);
     }
 
+    public double PayOutstandingBalance(){
+        if(payOutstandingBalance() > 1000){
+            var newOutStandingBalance = payOutstandingBalance() * .05;
+            System.out.println("The new oustanding balance is" + newOutStandingBalance);
+            return 0.0;
+        }
+        else{
+            System.out.println("The outstanding balance was below 1000");
+            return 0.0;
+        }
+    }
+
 
 }
