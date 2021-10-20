@@ -4,7 +4,7 @@ import java.util.ArrayList;
 /**
  * Class Customer
  */
-public class Customer {
+public abstract class Customer {
 
     //
     // Fields
@@ -17,6 +17,8 @@ public class Customer {
     //
     // Constructors
     //
+    public abstract double PayForOrder(ArrayList<ItemForSale> itemsInOrder);
+
     public Customer (String Name, int ID) {
         this.Name = Name;
         customerID = ID;
@@ -87,6 +89,14 @@ public class Customer {
     public String toString()
     {
         return "Customer Name: " + Name +"\nCustomerID: "+customerID + "\nWith "+Addresses.size() + " addresses on file";
+    }
+
+    public void arrangeDelivery(){
+        System.out.println("" + Name + "Deliver anytime");
+    }
+
+    public double payOutstandingBalance(){
+        return 0.0;
     }
 
 
