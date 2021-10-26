@@ -1,10 +1,11 @@
 package comp.comp152;
+
 import java.util.ArrayList;
 
 /**
  * Class Customer
  */
-public class Customer {
+public abstract class Customer {
 
     //
     // Fields
@@ -12,13 +13,11 @@ public class Customer {
     private ArrayList<ShippingAddress> Addresses;
     private String Name;
     private int customerID;
-    private static int nextID = 5000; //all preloaded customers from the text file must have IDs lower than 5000
+    private static int nextID = 5000;
 
     //
     // Constructors
     //
-    //public abstract double PayForOrder(ArrayList<ItemForSale> itemsInOrder);
-
     public Customer (String Name, int ID) {
         this.Name = Name;
         customerID = ID;
@@ -47,7 +46,7 @@ public class Customer {
      * @return the value of Addresses
      */
     public ArrayList<ShippingAddress> getAddresses () {
-        //this returns a copy of the list so that the caller cannot change the private instance variable
+
         return new ArrayList<ShippingAddress>(Addresses);
     }
 
@@ -91,13 +90,27 @@ public class Customer {
         return "Customer Name: " + Name +"\nCustomerID: "+customerID + "\nWith "+Addresses.size() + " addresses on file";
     }
 
-    public void arrangeDelivery(){
-        System.out.println("" + Name + "Deliver anytime");
+
+    /**
+     * PayForOrder must be an abstract method without any implementation
+     * @param itemsInOrder
+     * @return
+     */
+    public abstract double PayForOrder(ArrayList<merchandiseItem> itemsInOrder);
+
+    /**
+     * payOutstandingBalance should return 0.0 in the customer class
+     * @return
+     */
+    public double payOutstandingBalance() {
+        return 0;
     }
 
-    public double payOutstandingBalance(){
-        return 0.0;
+    /**
+     * arrangeDelivery will just print, the Customer Name and then "deliver any time" in the Customer class
+     */
+    public void arrangeDelivery() {
+        System.out.println("["+getName()+"] deliver any time");
     }
-
 
 }
