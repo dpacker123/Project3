@@ -1,28 +1,25 @@
 package comp.comp152;
 
-import java.lang.reflect.Type;
-
 public class merchandiseItem {
-
     private ItemType taxibleType;
     private String Name;
-    private double Price;
+    private double price;
 
-    public merchandiseItem(String Name, double Price, Type ItemType){
-
+    public merchandiseItem(String Name, double price, ItemType type) {
+        this.Name = Name;
+        this.price = price;
+        this.taxibleType = type;
     }
-    public String getName(){
+
+    public String getName() {
         return Name;
     }
 
-    public double getPrice(){
-        return Price;
+    public double getPrice() {
+        return price;
     }
 
-    public ItemType getType(){
+    public ItemType getType() {
         return taxibleType;
     }
-
-
-
 }
