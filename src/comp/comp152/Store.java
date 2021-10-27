@@ -1,18 +1,25 @@
 package comp.comp152;
 
-import javax.imageio.IIOException;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Scanner;
 
+
+
+//FULL DISCAIMLER!!!! I HIRED A TUTOR WHO HELPED ME DO THIS. WE WORKED TOGETHER ON THIS PROJECT
+// I WANT TO BE OPEN THAT I RECIEVED OUTSIDE HELP
+// I AM ON THE VERGE OF DROPPING THIS CLASS AND THIS WAS THE ONLY WAY I WAS ABLE TO COMPLETE THE PROJECT
 /**
  * Class Store
  */
 public class Store {
+
+    private static final String STOCK_DATA = "stock.txt";
+    private static final String CUSTOMER_DATA = "customers.txt";
 
     //
     // Fields
@@ -20,6 +27,8 @@ public class Store {
 
     private ArrayList<Order> Orders;
     private ArrayList<Customer> Customers;
+    private ArrayList<merchandiseItem> stock;
+    private double revenue;
 
     //
     // Constructors
@@ -27,20 +36,18 @@ public class Store {
     public Store () {
         Orders = new ArrayList<Order>();
         Customers = new ArrayList<Customer>();
+        stock = new ArrayList<merchandiseItem>();
+        revenue = 0;
     }
 
     //
     // Methods
     //
 
-
-
-
     public static void main(String[] args) throws IOException
     {
         var comp152Inc = new Store();
         comp152Inc.runStore();
-
     }
 
     /**
@@ -48,11 +55,14 @@ public class Store {
     public void runStore() throws IOException
     {
         var inputReader = new Scanner(System.in);
-        loadStartingCustomers(inputReader);
+        loadStock();
+        loadCustomers();
         while(true){ //the main run loop
             printMainMenu();
             var userChoice = inputReader.nextInt();
             switch (userChoice){
+                case 0:
+                    System.exit(0);
                 case 1:
                     addCustomer(inputReader);
                     break;
@@ -62,8 +72,8 @@ public class Store {
                         manageCustomer(selectedCustomer.get());
                     break;
                 case 3:
-                    System.exit(0);
-
+                    collectOutstandingBalance();
+                    break;
                 default:
                     System.out.println("\n%%%%%%Invalid selection, please choose one of the options from the menu%%%%%%\n");
             }
@@ -75,52 +85,81 @@ public class Store {
         System.out.println("Welcome to the the 1980s Comp152 Store interface, what would you like to do?");
         System.out.println("   [1] Add Customer");
         System.out.println("   [2] Select Customer");
-        System.out.println("   [3] Exit the program");
+        System.out.println("   [3] Collect Outstanding Balances");
+        System.out.println("   [0] Exit the program");
         System.out.println("*****************************************************************************");
         System.out.print("Enter the number of your choice:");
     }
 
-
-
-
-    private void loadStartingCustomers(Scanner inputReader) throws IOException {
-        Path fullPathName;
-        String filename;
-        while(true) { //this is for some error checking. It was not required by the assignment
-            System.out.print("Enter the name of the file to load customers:");
-            filename = inputReader.nextLine();
-            fullPathName = Paths.get(filename);
-            if (!Files.exists(fullPathName)){ //these three lines checks to see if the file exists, if not go
-                System.out.println("No file with that name, please try again....");//do the loop again
+    private void loadStock() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(STOCK_DATA))) {
+            String line;
+            while ((line = reader.readLine()) != null && !"".equals(line)) {
+                String[] cells = line.split(",");
+                ItemType type;
+                if (cells[0] == "Clothing") {
+                    type = ItemType.Clothing;
+                } else if (cells[0] == "WCIFFood") {
+                    type = ItemType.WICFFood;
+                } else {
+                    type = ItemType.GeneralMerchandise;
+                }
+                stock.add(new merchandiseItem(cells[1], Double.parseDouble(cells[2]), type));
             }
-            else
-                break;
-        }
-        //if we got here the file must be real
-        var allLines = Files.readAllLines(fullPathName);
-        // now create customers for all of the lines in the file
-        for(var line: allLines){
-            var splitLine = line.split(",");
-            var currentCustomer = new Customer(splitLine[0], Integer.parseInt(splitLine[1]));
-            Customers.add(currentCustomer);
         }
     }
 
+    private void loadCustomers() throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(new File(CUSTOMER_DATA)))) {
+            String line;
+            while ((line = reader.readLine()) != null & !"".equals(line)) {
+                String[] cells = line.split(",");
+                Customer customer;
+                if ("B".equals(cells[0])) {
+                    customer = new BusinessCustomer(cells[1], Integer.parseInt(cells[2]));
+                } else if ("TE".equals(cells[0])) {
+                    customer = new TaxExemptCustomer(cells[1], Integer.parseInt(cells[2]));
+                } else {
+                    customer = new ResidentialCustomer(cells[1], Integer.parseInt(cells[2]));
+                }
+                Customers.add(customer);
+            }
+        }
+    }
 
     /**
+     * it should now allow the customer to select several items for purchase
+     * after the order is complete, call PayForOrder and arrangeDelivery on the customer and add the return value to the new revenue instance variable
      * @param        address
      * @param        cust
      */
     public void makeOrder(ShippingAddress address, Customer cust)
     {
-        var newOrder = new Order(address,cust);
+        ArrayList<merchandiseItem> cart = new ArrayList<>();
+        System.out.println("############################ Choose cart items ############################");
+        do {
+            var oItem = chooseMerchandiseToOrder();
+            if (oItem.isPresent())
+                cart.add(oItem.get());
+            else
+                break;
+        }
+        while (true);
+        if (cart.isEmpty()) {
+            System.out.println("Cart is empty, order canceled");
+            return;
+        }
+        var newOrder = new Order(address,cust,cart);
         Orders.add(newOrder);
+        revenue += cust.PayForOrder(cart);
+        cust.arrangeDelivery();
         System.out.println(".......New order successfully created");
     }
 
-
-
     /**
+     * Add new customer
+     *
+     * @param inputReader std input an instance of {@link Scanner}
      */
     public void addCustomer(Scanner inputReader)
     {
@@ -129,7 +168,22 @@ public class Store {
         System.out.println("Adding Customer........");
         System.out.print("Enter the new Customers name:");
         var newName = inputReader.nextLine();
-        var newCustomer = new Customer(newName);
+        System.out.println("Customer Types.......");
+        System.out.println("B. Business");
+        System.out.println("R. Residential");
+        System.out.println("TE. Tax Exempt");
+        System.out.print("Enter type: ");
+        var type = inputReader.nextLine();
+        Customer newCustomer;
+        if ("B".equals(type)) {
+            newCustomer = new BusinessCustomer(newName);
+        }
+        else if ("TE".equals(type)) {
+            newCustomer = new TaxExemptCustomer(newName);
+        }
+        else {
+            newCustomer = new ResidentialCustomer(newName);
+        }
         Customers.add(newCustomer);
         System.out.println(".....Finished adding new Customer Record");
     }
@@ -155,6 +209,43 @@ public class Store {
         return Optional.empty();
     }
 
+    /**
+     * Calculates the outstanding balance from all customers
+     */
+    public void collectOutstandingBalance() {
+        for (Customer c : Customers) {
+            revenue += c.payOutstandingBalance();
+        }
+        System.out.printf("Total revenue collected from all customer is: $%,.2f\n",revenue);
+    }
+
+    /**
+     * This method will show a list of stock to choose a merchandise from the list
+     * and returns the {@link Optional} of the selected merchandise. If nothing is
+     * selected an empty {@link Optional} is returned.
+     *
+     * @return {@link Optional} of selected merchandise or empty {@link Optional} if
+     *          nothing selected
+     */
+    private Optional<merchandiseItem> chooseMerchandiseToOrder() {
+        var inputReader = new Scanner(System.in);
+        System.out.println("============================ [ Choose Merchandise ] ============================");
+        int slNo = 0;
+        System.out.printf(" %4s |                            Name                              | %6s\n", "sl no.", "Price");
+        System.out.println("--------------------------------------------------------------------------------");
+        for (merchandiseItem m : stock) {
+            System.out.printf("%7d | %60s | $%,.2f\n",(slNo+1), m.getName(), m.getPrice());
+            slNo++;
+        }
+        System.out.println("================================================================================");
+        System.out.print("Enter serial no ( or any other number to exit): ");
+        var choice = inputReader.nextInt();
+        inputReader.nextLine();
+        if (choice > 0 && choice <= stock.size()) {
+            return Optional.of(stock.get(choice-1));
+        }
+        return Optional.empty();
+    }
 
     /**
      * @param        selectedCustomer
@@ -235,6 +326,4 @@ public class Store {
         System.out.println("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
         System.out.print("Enter the number of your choice:");
     }
-
-
 }
